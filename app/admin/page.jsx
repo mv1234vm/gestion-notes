@@ -3,10 +3,21 @@
 import { useEffect, useState } from "react";
 
 export default function AdminPage() {
+  const [authorized, setAuthorized] = useState(false);
   const [users, setUsers] = useState([]);
   const [notes, setNotes] = useState([]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const key = params.get("key");
+
+    if (key !== process.env.NEXT_PUBLIC_ADMIN_KEY) {
+      setAuthorized(false);
+      return;
+    }
+
+    setAuthorized(true);
+
     fetch("/api/adminData")
       .then(r => r.json())
       .then(data => {
@@ -14,6 +25,15 @@ export default function AdminPage() {
         setNotes(data.notes || []);
       });
   }, []);
+
+  if (!authorized) {
+    return (
+      <main>
+        <h2>Accès refusé</h2>
+        <p>Mot de passe incorrect.</p>
+      </main>
+    );
+  }
 
   const totalEleves = users.length;
   const totalNotes = notes.length;
@@ -42,26 +62,9 @@ export default function AdminPage() {
       <h2>Admin — Statistiques</h2>
 
       <div className="stats-grid">
-        <div className="card">
-          <div className="card-content">
-            <h2>Élèves</h2>
-            <p>Total : {totalEleves}</p>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-content">
-            <h2>Notes</h2>
-            <p>Total : {totalNotes}</p>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-content">
-            <h2>Moyenne globale</h2>
-            <p>{moyenneGlobale}</p>
-          </div>
-        </div>
+        <div className="card"><div className="card-content"><h2>Élèves</h2><p>{totalEleves}</p></div></div>
+        <div className="card"><div className="card-content"><h2>Notes</h2><p>{totalNotes}</p></div></div>
+        <div className="card"><div className="card-content"><h2>Moyenne globale</h2><p>{moyenneGlobale}</p></div></div>
       </div>
 
       <h3>Stats par matière</h3>
@@ -70,16 +73,8 @@ export default function AdminPage() {
           <div className="card" key={m}>
             <div className="card-content">
               <h2>{m}</h2>
-              <p>
-                Moyenne :{" "}
-                {(moyennesMatieres[m].total / moyennesMatieres[m].coef).toFixed(
-                  2
-                )}
-              </p>
-              <p>
-                Nombre de notes :{" "}
-                {notes.filter(n => n.matiere === m).length}
-              </p>
+              <p>Moyenne : {(moyennesMatieres[m].total / moyennesMatieres[m].coef).toFixed(2)}</p>
+              <p>Notes : {notes.filter(n => n.matiere === m).length}</p>
             </div>
           </div>
         ))}

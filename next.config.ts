@@ -1,7 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+module.exports = {
+  env: {
+    NEXT_PUBLIC_ADMIN_KEY: process.env.ADMIN_KEY,
+  },
 };
-
-export default nextConfig;
